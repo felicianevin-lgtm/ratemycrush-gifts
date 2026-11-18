@@ -14,6 +14,24 @@ AMZ = {"playful": "https://www.amazon.com/dp/B0FR24YJ8W", "moody": "https://www.
 AUTHOR = "https://www.amazon.com/stores/Felicia-Nevin/author/B0GHFWPC6F"
 INDEXNOW = "4f7c2a9e1b6d48e3a5c0f2d9e8b7a6c1"
 
+# BLACK FRIDAY 2026 (brief 11/17): the sale banner + sale FAQ show ONLY when today is 2026-11-24..2026-11-30 AND
+# Autopilot/sale_bf2026.json status.drop_live_verified is true (set by the daily task after it sees $9.99 on Amazon).
+# Outside that window they disappear on the next build (the daily task rebuilds + pushes on 11/24 and 12/1).
+def _sale():
+    try:
+        j = json.load(open(os.path.join(os.path.dirname(HERE), "Autopilot", "sale_bf2026.json"), encoding="utf-8"))
+    except Exception:
+        return None
+    t = dt.date.today()
+    if not (dt.date(2026, 11, 24) <= t <= dt.date(2026, 11, 30) and j.get("status", {}).get("drop_live_verified")): return None
+    d = next((dt.date.fromisoformat(str(x.get("date"))[:10]) for x in j.get("log", []) if isinstance(x, dict) and x.get("date") and x.get("prices")), None)
+    d = max(d or dt.date(2026, 11, 24), dt.date(2026, 11, 24))
+    return d.strftime("%b %-d, %Y") if os.name != "nt" else d.strftime("%b %#d, %Y")
+SALE_ASOF = _sale()
+BF_SEASON = dt.date.today() <= dt.date(2026, 11, 30)
+SALEBAR = (f'<div class="salebar">🎉 <b>Black Friday price drop:</b> all 3 paperback covers $9.99 on Amazon (as of {SALE_ASOF}, through Cyber Monday 11/30) '
+           f'<a href="/rate-my-crush/#editions">Pick a cover →</a></div>') if SALE_ASOF else ""
+
 # Verified edition facts (Amazon listings + KDP, 11/17/2026). No prices here on purpose.
 EDITIONS = [
  dict(key="playful", name="Playful", vibe="Bright & sparkly", look="Glossy pastel cover with hearts and stars",
@@ -209,6 +227,9 @@ ol.ideas li{counter-increment:i;background:#fff;border-radius:18px;padding:16px 
 ol.ideas li::before{content:counter(i);position:absolute;left:16px;top:14px;width:38px;height:38px;border-radius:12px;background:var(--blush);color:var(--pink);display:grid;place-items:center;font:800 19px "Baloo 2"}
 ol.ideas li.star{border-color:var(--pink2);background:#fff7fb}
 ol.ideas li.star::before{content:"♥";background:var(--pink);color:#fff}
+.salebar{background:linear-gradient(90deg,#ff4f9a,#ff8a5c);color:#fff;text-align:center;font-weight:700;font-size:15px;padding:10px 14px;line-height:1.4}.salebar a{color:#fff;text-decoration:underline;margin-left:6px;white-space:nowrap}
+.film{display:grid;grid-template-columns:minmax(0,360px) 1fr;gap:40px;align-items:center}.film .vid{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 30px 60px -20px rgba(40,10,40,.55);background:#1c110a;aspect-ratio:9/16}.film video{width:100%;height:100%;object-fit:cover;display:block}.film .snd{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);border:0;border-radius:999px;background:rgba(255,255,255,.92);color:#3b1d2e;font:800 15px Nunito,sans-serif;padding:10px 18px;cursor:pointer;white-space:nowrap}
+@media (max-width:720px){.film{grid-template-columns:1fr}.film .vid{max-width:320px;margin:0 auto}}
 .note{background:#fff7d6;border-radius:18px;padding:14px 18px;font-weight:700;color:#6b5a1d;margin:18px 0}
 .art h2{font-size:clamp(26px,3.6vw,34px);margin-top:1.6em}
 /* footer */
@@ -308,7 +329,7 @@ def page(path, title, desc, body, schema=None, buybar=True, og="og.jpg"):
 <meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{SITE}/img/{og}">
 <meta property="og:site_name" content="Rate My Crush"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Rate My Crush crush journal: Playful, Moody and Floral covers"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/img/{og}"><meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"><meta name="theme-color" content="#fff5fa"><meta name="p:domain_verify" content="2bf34be4f8d0c0ea909f29abf56b6f69">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%97%3C/text%3E%3C/svg%3E">
-<script>document.documentElement.classList.add('js')</script>{FONTS}<style>{CSS}</style>{ld}<script type="application/ld+json">{json.dumps([ORG, PERSON], ensure_ascii=False)}</script>{GC}</head><body>
+<script>document.documentElement.classList.add('js')</script>{FONTS}<style>{CSS}</style>{ld}<script type="application/ld+json">{json.dumps([ORG, PERSON], ensure_ascii=False)}</script>{GC}</head><body>{SALEBAR}
 <header class="top"><div class="bar"><a class="logo" href="/rate-my-crush/"><span class="h">♥</span>Rate My Crush</a>
 <nav class="main"><a href="/rate-my-crush/#inside">Peek inside</a><a href="/rate-my-crush/#why">Why it works</a><a href="/">Gift guides</a><a class="btn sm" href="/rate-my-crush/#editions">Shop on Amazon</a></nav></div></header>
 <main>{body}</main>
@@ -349,7 +370,8 @@ GUIDE_EMOJI = {"gifts-for-10-year-old-girls": "🎂", "stocking-stuffers-for-twe
                "christmas-gifts-for-tween-girls": "🎄", "birthday-gifts-for-tween-girls": "🎈", "gifts-for-8-year-old-girls": "🧸",
                "gifts-for-9-year-old-girls": "🎨", "gifts-for-11-year-old-girls": "💖", "gifts-for-12-year-old-girls": "🖤",
                "galentines-day-gift-ideas-for-tweens": "👯", "best-journals-for-tween-girls": "📓", "easter-basket-ideas-for-tweens": "🐣",
-               "gifts-for-girls-who-have-everything": "✨"}
+               "gifts-for-girls-who-have-everything": "✨",
+               "black-friday-gift-ideas-for-tween-girls": "🛍️", "cyber-monday-gift-ideas-for-tweens": "💻"}
 
 def guide_cards(gs, short=False):
     return '<div class="cards">' + "".join(
@@ -369,10 +391,49 @@ BOOK_FAQ = [
  ("Is Rate My Crush a good Valentine's Day or Galentine's Day gift?", "Yes. It's a lighthearted, on-theme alternative to candy, and it makes a funny group activity for a Galentine's sleepover."),
  ("Is Rate My Crush age-appropriate?", "Yes. It's designed for ages 7–14 and keeps things lighthearted. The scorecard even rates Kindness and How They Treat Me alongside Smile and Hair."),
  ("Who wrote Rate My Crush?", "Rate My Crush is by Felicia Nevin, an independent author writing from East Tennessee. It's published in three editions (Playful, Moody and Floral) and sold on Amazon."),
+ ("Is Rate My Crush a good gift for a daughter, niece, granddaughter or little sister?", "Yes. It's made for ages 7–14, so it works for a daughter, niece, granddaughter, goddaughter or little sister in that range. Moms, aunts, grandmas and big sisters give it as a fun, screen-free gift and a keepsake she'll laugh about when she's grown."),
  ("Is it a good gift?", "It makes a fun gift for birthdays, Christmas stockings, Valentine's Day and sleepovers: a fun, screen-free way for her to process first crushes, and a keepsake she'll laugh about when she's grown."),
 ]
 
 GUIDES = [
+ dict(slug="black-friday-gift-ideas-for-tween-girls", kw="Black Friday gifts for tween girls",
+  title="Black Friday Gift Ideas for Tween Girls (2026): Stocking Stuffers & Gifts Ages 7–14",
+  desc="Black Friday gift ideas for tween girls ages 7–14: stocking stuffers, screen-free gifts, and picks for your daughter, niece or granddaughter, starting with a crush journal she'll laugh about when she's grown.",
+  intro="Black Friday is when the list gets real: the niece, the granddaughter, your own daughter, the little sister who's suddenly too cool for everything. These ideas work for girls ages 7 to 14, from stocking stuffers to the gift she'll open first.",
+  angle="It's the fun-aunt, cool-grandma, mom-who-gets-it gift, and at 6×9 it fits in most stockings.",
+  items=[("A crush journal", "Rate My Crush: every crush gets a code name, a 10-category scorecard and a Crush Level. A keepsake she'll laugh about at 30."),
+   ("A big set of gel pens", "The perfect pairing for any journal. Glitter, scented or pastel."),
+   ("Cozy pajamas or fuzzy pants", "For movie nights all winter."),
+   ("A friendship bracelet kit", "Something to make and trade with friends over the break."),
+   ("Room decor", "String lights, a fun pillow or a small mirror for her space."),
+   ("A card or party game", "For sleepovers and family game night."),
+   ("A first book in a new series", "A long winter read."),
+   ("A beginner craft kit", "Embroidery, sewing, clay or painting."),
+   ("A cute water bottle and stickers", "She'll decorate it the same day."),
+   ("An experience with you", "Ice skating, a holiday show or a baking day.")],
+  faq=[("What are good Black Friday gifts for tween girls?", "Gifts she'll actually use: journals, gel pens, cozy pajamas, craft kits, room decor, card games and books. A crush journal like Rate My Crush is a screen-free, funny gift for ages 7–14 that doubles as a stocking stuffer."),
+       ("What's a good Black Friday gift for my niece, granddaughter or daughter (ages 7–14)?", "Something personal and a little grown-up: a journal, a craft kit, room decor or an experience together. Rate My Crush is a crush journal made for ages 7–14 with code names, a 10-category star scorecard and a Crush Level meter."),
+       ("Are there stocking stuffers for tweens that aren't candy?", "Yes: gel pens, hair accessories, lip balm, card games, stickers and small journals. Rate My Crush is a 6×9 paperback, so it fits in most standard stockings."),
+       ("Does Rate My Crush come with pens?", "No. It's the journal itself (no pens, stickers or lock included). A pack of gel pens makes a great pairing.")],
+  sale_faq=[("Is Rate My Crush on sale for Black Friday?", f"Yes. As of {SALE_ASOF}, all three paperback covers (Playful, Moody and Floral) are $9.99 on Amazon, through Cyber Monday, November 30, 2026. Prices can change, so check the Amazon listing for the current price. The Playful hardcover isn't part of the price drop.")]),
+ dict(slug="cyber-monday-gift-ideas-for-tweens", kw="Cyber Monday gifts for girls",
+  title="Cyber Monday Gift Ideas for Tweens (2026): Gifts for Girls 7–14",
+  desc="Cyber Monday gift ideas for tween girls ages 7–14: easy online picks for your daughter, niece or granddaughter, plus stocking stuffers and a crush journal that gets a gasp.",
+  intro="Cyber Monday is made for finishing the list from the couch. Here are online-friendly gift ideas for girls ages 7 to 14 that feel thoughtful, not last-minute.",
+  angle="It's an easy add-to-cart gift that still feels personal: she fills it in with her own crushes, code names and star ratings.",
+  items=[("A crush journal", "Rate My Crush: a guided crush journal for ages 7–14 with a 50-star scorecard and a Crush Level heart meter."),
+   ("Gel pens or fine-tip markers", "A journal kid's must-have."),
+   ("A cozy throw blanket", "For reading, movies and sleepovers."),
+   ("A jewelry-making kit", "Beads, charms and a reason to make gifts for friends."),
+   ("A fun alarm clock or lamp", "A grown-up touch for her room."),
+   ("A graphic novel or chapter book", "Something new for winter break."),
+   ("A sketchbook and colored pencils", "For the doodler."),
+   ("A game for the whole family", "Something for after Christmas dinner."),
+   ("Hair accessories", "Claw clips, scrunchies and headbands."),
+   ("A puzzle book", "Word searches, logic puzzles and brain teasers.")],
+  faq=[("What are good Cyber Monday gifts for girls ages 7–14?", "Journals, gel pens, craft and jewelry kits, books, room decor, cozy blankets and family games. Rate My Crush is a crush journal for ages 7–14 sold on Amazon in three covers: Playful, Moody and Floral."),
+       ("Which Rate My Crush cover should I pick?", "Same prompts inside, each styled to match its cover: Playful is bright pastel and glossy, Moody is dark and matte, and Floral is navy florals and matte. Pick the one that matches her style.")],
+  sale_faq=[("Is Rate My Crush on sale for Black Friday?", f"Yes. As of {SALE_ASOF}, all three paperback covers (Playful, Moody and Floral) are $9.99 on Amazon, through Cyber Monday, November 30, 2026. Prices can change, so check the Amazon listing for the current price. The Playful hardcover isn't part of the price drop.")]),
  dict(slug="gifts-for-10-year-old-girls", kw="Gifts for a 10 year old girl",
   title="Gift Ideas for a 10-Year-Old Girl (That She'll Actually Use)",
   desc="Thoughtful, fun gift ideas for a 10-year-old girl: screen-free, creative and age-appropriate picks, plus a crush journal she'll laugh about when she's grown.",
@@ -705,6 +766,21 @@ def social_section():
     return f"""<section style="background:linear-gradient(180deg,#fff,#f4efff)"><div class="wrap center"><span class="kicker">📲 Come hang out</span>
 <h2>Follow Rate My Crush</h2><p class="lede">Gift ideas, funny skits and peeks inside the journal, for the grown-ups doing the shopping.</p>{socials_grid()}</div></section>"""
 
+def film_section():
+    """'Not Lost to Time' short film (evergreen cut, no price). Muted autoplay loop when on screen, lazy loaded, play-with-sound button."""
+    if not os.path.exists(os.path.join(HERE, "video", "not-lost-to-time.mp4")): return ""
+    return """<section id="film"><div class="wrap film"><div class="vid rv"><video muted loop playsinline preload="none" poster="/video/not-lost-to-time.jpg" data-src="/video/not-lost-to-time.mp4" aria-label="Not Lost to Time, a short film (a dramatization)"></video>
+<button class="snd" type="button">▶ Play with sound</button></div>
+<div class="rv"><span class="kicker">🎬 A short film · a dramatization</span><h2>Not Lost to Time</h2>
+<p class="lede">Every generation has a first crush. Grandma's was a folded note in a lunchbox in 1962. Mom's was a mixtape label in 1991. Yours might have been a flip-phone text. Most of those moments were lost to time.</p>
+<p>Rate My Crush gives hers a place to live: a code name, a 10-category scorecard, and prompts like "Funniest/Best Memory I Have" and "Why I Think We'd Be a Good Match."</p>
+<p><a class="btn" href="#editions">Pick a cover →</a></p></div></div></section>
+<script>(function(){var v=document.querySelector('#film video'),b=document.querySelector('#film .snd');if(!v)return;
+function load(){if(!v.src){v.src=v.dataset.src}}
+if('IntersectionObserver' in window){new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){load();if(v.muted)v.play().catch(function(){})}else{v.pause()}})},{threshold:.35}).observe(v)}else{load()}
+b.addEventListener('click',function(){load();v.muted=!v.muted;if(!v.muted){v.currentTime=0;v.loop=false}else{v.loop=true}v.play().catch(function(){});b.textContent=v.muted?'▶ Play with sound':'🔇 Mute'});
+v.addEventListener('ended',function(){v.muted=true;v.loop=true;v.play().catch(function(){});b.textContent='▶ Play with sound'});})();</script>"""
+
 def band(title, sub):
     btns = "".join(f'<a class="btn" href="{AMZ[e["key"]]}">{e["name"]} on Amazon</a>' for e in EDITIONS)
     return f"""<section><div class="wrap"><div class="band rv"><span class="float" style="left:5%;top:14%">💗</span><span class="float" style="right:6%;top:20%;animation-delay:-3s">⭐</span>
@@ -714,7 +790,7 @@ def build():
     urls = []
     # ---------- guides ----------
     for g in GUIDES:
-        fh, fs = faq_block(g["faq"])
+        fh, fs = faq_block(g["faq"] + (g.get("sale_faq", []) if SALE_ASOF else []))
         art = {"@context": "https://schema.org", "@type": "Article", "headline": g["title"], "description": g["desc"],
                "datePublished": "2026-11-17", "dateModified": TODAY, "author": {"@type": "Person", "name": "Felicia Nevin"},
                "image": SITE + "/img/cover-playful.jpg", "mainEntityOfPage": SITE + "/" + g["slug"] + "/"}
@@ -749,7 +825,7 @@ def build():
 {hero_stack()}</div></section>{ticker()}
 <section id="how"><div class="wrap center"><span class="kicker">📝 How it works</span><h2>One crush. One page. <span class="hand">Zero chill.</span></h2>
 <div class="steps" style="text-align:left">{''.join(f'<div class="step rv"><span class="n">{i+1}</span><div class="e">{e}</div><h3>{t}</h3><p style="color:var(--muted);margin:0">{d}</p></div>' for i, (e, t, d) in enumerate(STEPS))}</div></div></section>
-{demo()}{editions()}{gallery()}{reasons()}{occasions()}{author()}{social_section()}
+{demo()}{film_section()}{editions()}{gallery()}{reasons()}{occasions()}{author()}{social_section()}
 <section id="faq"><div class="narrow"><h2 class="center">Questions grown-ups ask</h2>{fh}</div></section>
 <section style="padding-top:20px"><div class="wrap"><h2 class="center">Gift guides</h2>{guide_cards(GUIDES, short=True)}</div></section>
 {band("Ready to make someone giggle?", "Pick their cover. Every edition has the same 100 guided pages inside.")}"""
@@ -766,7 +842,7 @@ def build():
 {social_section()}{band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
     site = {"@context": "https://schema.org", "@type": "WebSite", "name": "Rate My Crush", "url": SITE + "/", "publisher": {"@id": SITE + "/#brand"}}
     il = {"@context": "https://schema.org", "@type": "ItemList", "name": "Gift guides for tweens ages 7–14", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": SITE + "/" + g["slug"] + "/", "name": g["title"]} for i, g in enumerate(GUIDES)]}
-    urls.insert(0, page("index.html", "Gift Ideas for Tween Girls 7–14: Christmas, Birthday & Valentine's | Rate My Crush", "Gift ideas for tween girls ages 7–14: Christmas gifts, stocking stuffers, birthday gifts, Valentine's and Galentine's ideas, plus gifts for nieces and granddaughters, from the makers of the Rate My Crush crush journal.", body, [site, il]))
+    urls.insert(0, page("index.html", ("Gift Ideas for Tween Girls 7–14: Black Friday, Christmas & Stocking Stuffers | Rate My Crush" if BF_SEASON else "Gift Ideas for Tween Girls 7–14: Christmas, Birthday & Valentine's | Rate My Crush"), ("Black Friday and Cyber Monday gift ideas for tween girls 7–14, plus g" if BF_SEASON else "G") + "ift ideas for tween girls ages 7–14: Christmas gifts, stocking stuffers, birthday gifts, Valentine's and Galentine's ideas, plus gifts for nieces and granddaughters, from the makers of the Rate My Crush crush journal.", body, [site, il]))
     # ---------- 404, robots, sitemap, llms.txt, CNAME ----------
     page("404.html", "Page not found | Rate My Crush", "Page not found.",
          '<section class="hero"><div class="narrow center"><h1>Oops, that page ghosted us 👻</h1><p class="lede" style="margin:0 auto 20px">It happens to the best crushes.</p><a class="btn" href="/rate-my-crush/">Meet Rate My Crush</a> <a class="btn ghost" href="/">See gift guides</a></div></section>')
