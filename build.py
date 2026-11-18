@@ -12,6 +12,7 @@ TODAY = dt.date.today().isoformat()
 AMZ = {"playful": "https://www.amazon.com/dp/B0FR24YJ8W", "moody": "https://www.amazon.com/dp/B0FQPPSK1V",
        "floral": "https://www.amazon.com/dp/B0FQPK7S8Q"}
 AUTHOR = "https://www.amazon.com/stores/Felicia-Nevin/author/B0GHFWPC6F"
+INDEXNOW = "4f7c2a9e1b6d48e3a5c0f2d9e8b7a6c1"
 
 # Verified edition facts (Amazon listings + KDP, 11/17/2026). No prices here on purpose.
 EDITIONS = [
@@ -261,6 +262,10 @@ const c=document.querySelector('[data-cover-img]');if(c){c.src='/img/cover-'+k+'
 const lb=document.createElement('div');lb.className='lb';lb.innerHTML='<img alt="">';document.body.appendChild(lb);
 document.querySelectorAll('[data-zoom] img').forEach(i=>i.addEventListener('click',()=>{lb.firstChild.src=i.src;lb.firstChild.alt=i.alt;lb.classList.add('open')}));
 lb.addEventListener('click',()=>lb.classList.remove('open'));addEventListener('keydown',e=>{if(e.key==='Escape')lb.classList.remove('open')});
+// count Amazon clicks (GoatCounter events; no cookies)
+document.addEventListener('click',e=>{const a=e.target.closest('a[href*="amazon.com"]');if(!a||!window.goatcounter||!goatcounter.count)return;
+const ed={'B0FR24YJ8W':'playful','B0FQPPSK1V':'moody','B0FQPK7S8Q':'floral'}[(a.href.match(/dp\/(\w+)/)||[])[1]]||'author';
+goatcounter.count({path:'amazon-'+ed+location.pathname.replace(/\/$/,'').replace(/\//g,'-'),title:'Amazon click: '+ed,event:true})});
 // mobile buy bar
 const bb=document.querySelector('.buybar');if(bb){const f=()=>bb.classList.toggle('show',scrollY>500);addEventListener('scroll',f,{passive:true});f()}
 })();
@@ -279,18 +284,31 @@ def socials_grid():
         f'<a class="so rv" href="{u}" target="_blank" rel="noopener"><span class="ic" style="background:{SOCIAL_COLORS[n]}">{icon(svg,26)}</span>{n}<small>{esc(h)}</small></a>'
         for n, u, h, svg in SOCIAL) + "</div>"
 
+SAME_AS = [u for n, u, h, sv in SOCIAL] + list(AMZ.values())
+ORG = {"@context": "https://schema.org", "@type": "Brand", "@id": SITE + "/#brand", "name": "Rate My Crush", "url": SITE + "/rate-my-crush/",
+       "logo": SITE + "/img/cover-playful.jpg", "description": "Rate My Crush is a guided crush journal for ages 7–14 by Felicia Nevin, sold on Amazon in Playful, Moody and Floral editions.",
+       "sameAs": SAME_AS}
+PERSON = {"@context": "https://schema.org", "@type": "Person", "@id": SITE + "/#felicia", "name": "Felicia Nevin", "jobTitle": "Author",
+          "description": "Author of the Rate My Crush crush journal series, writing from East Tennessee.", "url": AUTHOR, "sameAs": [AUTHOR]}
+
+def crumbs(items):
+    return {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": i + 1, "name": n, "item": SITE + u} for i, (n, u) in enumerate(items)]}
+
+GC = '<script data-goatcounter="https://ratemycrush.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>'
+
 def page(path, title, desc, body, schema=None, buybar=True, og="og.jpg"):
     url = SITE + "/" + path.replace("index.html", "")
     ld = "".join(f'<script type="application/ld+json">{json.dumps(s, ensure_ascii=False)}</script>' for s in (schema or []))
-    guides_links = "".join(f'<li><a href="/{g["slug"]}/">{esc(g["kw"])}</a></li>' for g in GUIDES[:7])
+    guides_links = "".join(f'<li><a href="/{g["slug"]}/">{esc(g["kw"])}</a></li>' for g in GUIDES)
     doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title><meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{url}"><meta property="og:type" content="website"><meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{SITE}/img/{og}">
-<meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#fff5fa">
+<meta property="og:site_name" content="Rate My Crush"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Rate My Crush crush journal: Playful, Moody and Floral covers"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/img/{og}"><meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"><meta name="theme-color" content="#fff5fa">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%97%3C/text%3E%3C/svg%3E">
-<script>document.documentElement.classList.add('js')</script>{FONTS}<style>{CSS}</style>{ld}</head><body>
+<script>document.documentElement.classList.add('js')</script>{FONTS}<style>{CSS}</style>{ld}<script type="application/ld+json">{json.dumps([ORG, PERSON], ensure_ascii=False)}</script>{GC}</head><body>
 <header class="top"><div class="bar"><a class="logo" href="/rate-my-crush/"><span class="h">♥</span>Rate My Crush</a>
 <nav class="main"><a href="/rate-my-crush/#inside">Peek inside</a><a href="/rate-my-crush/#why">Why it works</a><a href="/">Gift guides</a><a class="btn sm" href="/rate-my-crush/#editions">Shop on Amazon</a></nav></div></header>
 <main>{body}</main>
@@ -327,7 +345,11 @@ def faq_block(qas):
 
 GUIDE_EMOJI = {"gifts-for-10-year-old-girls": "🎂", "stocking-stuffers-for-tween-girls": "🧦", "gifts-for-niece": "💅",
                "valentines-gifts-for-girls": "💌", "screen-free-gifts-for-tween-girls": "📵", "gifts-for-granddaughter": "🧶",
-               "sleepover-ideas-for-tween-girls": "🍕"}
+               "sleepover-ideas-for-tween-girls": "🍕",
+               "christmas-gifts-for-tween-girls": "🎄", "birthday-gifts-for-tween-girls": "🎈", "gifts-for-8-year-old-girls": "🧸",
+               "gifts-for-9-year-old-girls": "🎨", "gifts-for-11-year-old-girls": "💖", "gifts-for-12-year-old-girls": "🖤",
+               "galentines-day-gift-ideas-for-tweens": "👯", "best-journals-for-tween-girls": "📓", "easter-basket-ideas-for-tweens": "🐣",
+               "gifts-for-girls-who-have-everything": "✨"}
 
 def guide_cards(gs, short=False):
     return '<div class="cards">' + "".join(
@@ -341,6 +363,12 @@ BOOK_FAQ = [
  ("How big is it?", "It's a 6×9 inch paperback. The Playful Edition is also available in hardcover."),
  ("Where can I buy it?", "Rate My Crush is sold on Amazon. Search \"Rate My Crush\" or use the links on this page."),
  ("Does it come with pens, stickers or a lock?", "No. It's the journal itself. A set of gel pens makes a nice pairing if you're giving it as a gift."),
+ ("What is a crush journal?", "A crush journal is a guided journal for writing about crushes. In Rate My Crush, each crush gets a page with a code name, a 10-category star scorecard (50 stars total), a Crush Level heart meter and prompts like \"Why I Think We'd Be a Good Match.\""),
+ ("Is Rate My Crush a good stocking stuffer?", "Yes. It's a 6×9 inch paperback, so it fits in most standard stockings, and it's a screen-free gift that gets used long after Christmas morning."),
+ ("Is Rate My Crush a good birthday gift for a 9, 10, 11 or 12 year old?", "Yes. It's made for ages 7–14, so it fits any of those birthdays, and the scorecard makes a fun group activity at a birthday sleepover."),
+ ("Is Rate My Crush a good Valentine's Day or Galentine's Day gift?", "Yes. It's a lighthearted, on-theme alternative to candy, and it makes a funny group activity for a Galentine's sleepover."),
+ ("Is Rate My Crush age-appropriate?", "Yes. It's designed for ages 7–14 and keeps things lighthearted. The scorecard even rates Kindness and How They Treat Me alongside Smile and Hair."),
+ ("Who wrote Rate My Crush?", "Rate My Crush is by Felicia Nevin, an independent author writing from East Tennessee. It's published in three editions (Playful, Moody and Floral) and sold on Amazon."),
  ("Is it a good gift?", "It makes a fun gift for birthdays, Christmas stockings, Valentine's Day and sleepovers: a fun, screen-free way for her to process first crushes, and a keepsake she'll laugh about when she's grown."),
 ]
 
@@ -447,6 +475,138 @@ GUIDES = [
    ("A dance-off", "Somebody always wins."), ("Polaroid photo wall", "Take pictures, pin them up.")],
   faq=[("What do tween girls do at sleepovers?", "Movies, crafts like friendship bracelets, spa nights, card games, snacks and a lot of talking. Activities that get everyone laughing together work best."),
        ("Is Rate My Crush a good sleepover activity?", "Yes. The Amazon listing describes it as a sleepover activity, and its scorecard format is easy to share and laugh about with friends.")]),
+ dict(slug="christmas-gifts-for-tween-girls", kw="Christmas gifts for tween girls",
+  title="Christmas Gifts for Tween Girls (Ages 8–14) She'll Actually Use",
+  desc="Christmas gift ideas for tween girls ages 8 to 14: cozy, creative and screen-free picks, plus a crush journal that makes a perfect stocking stuffer.",
+  intro="Tweens are tricky to shop for at Christmas: too old for toys, too young for a lot of teen stuff, and very clear about what's cringe. These ideas land in that sweet spot, from big gifts to stocking stuffers.",
+  angle="It's a Christmas morning gasp-then-giggle gift, and at 6×9 it fits in most stockings.",
+  items=[("A crush journal", "Peak stocking-stuffer energy: she rates her crushes on a 10-category scorecard."),
+   ("Cozy Christmas pajamas", "For the Christmas Eve photo and every movie night after."),
+   ("A room makeover kit", "String lights, a fun throw pillow and a small mirror."),
+   ("A friendship bracelet kit", "Something to make over winter break and trade with friends."),
+   ("A big set of gel pens", "The journal kid's must-have."),
+   ("A beginner sewing or embroidery kit", "A project for the slow days after Christmas."),
+   ("Card games for family game night", "Something everyone can play on Christmas afternoon."),
+   ("A first book in a new series", "A long winter-break read."),
+   ("A fuzzy blanket", "Gifts you can snuggle never miss."),
+   ("An experience", "Ice skating, a holiday show or a cookie-decorating day with you.")],
+  faq=[("What do tween girls want for Christmas?", "Many tweens want things that feel a little grown-up and very personal: room decor, cozy clothes, craft kits, journals, books and experiences with family or friends. Gifts that let her express herself tend to be hits."),
+       ("What's a good stocking stuffer for a tween girl?", "Small things she'll use after Christmas morning: gel pens, hair accessories, lip balm, card games and journals. Rate My Crush is a 6×9 crush journal that fits in most stockings.")]),
+ dict(slug="birthday-gifts-for-tween-girls", kw="Birthday gifts for tween girls",
+  title="Birthday Gifts for Tween Girls (Ages 8–14): Fun Ideas She'll Love",
+  desc="Birthday gift ideas for tween girls ages 8 to 14, from party-favorite crafts to a crush journal that gets passed around the whole sleepover.",
+  intro="A tween birthday gift has two jobs: get a reaction when she opens it, and still be in use a month later. Here are ideas that do both, whether it's your daughter, niece, granddaughter or her best friend.",
+  angle="It's a birthday gift that gets a reaction at the party and keeps getting filled in after.",
+  items=[("A crush journal", "Opens with a squeal, gets passed around the birthday sleepover."),
+   ("A DIY spa night kit", "Face masks and nail polish for the party."),
+   ("A mini instant camera or photo album", "For party pictures with her friends."),
+   ("A friendship bracelet kit", "Everyone at the party can make one."),
+   ("Room decor in her favorite color", "Lights, pillows, a cute storage box."),
+   ("A big art or sketch set", "For the creative birthday girl."),
+   ("A cozy hoodie or robe", "Comfort gifts always land."),
+   ("A book series she hasn't started", "Something to read after the party."),
+   ("A group card game", "So the party has a built-in activity."),
+   ("A birthday outing", "A class, a show or lunch with you.")],
+  faq=[("What's a good birthday gift for a tween girl?", "Gifts that are personal and a little grown-up: journals, room decor, craft kits, cozy clothes and experiences. Rate My Crush is a guided crush journal for ages 7–14 that doubles as a party activity."),
+       ("What can I give a tween girl for her birthday that isn't a gift card?", "A guided journal, a craft kit, a spa night kit or an outing together all feel more personal than a gift card.")]),
+ dict(slug="gifts-for-8-year-old-girls", kw="Gifts for an 8 year old girl",
+  title="Gift Ideas for an 8-Year-Old Girl: Fun, Creative and Screen-Free",
+  desc="Gift ideas for an 8-year-old girl: craft kits, books, games and a fun crush journal she can grow into.",
+  intro="At 8, she's reading on her own, making things with her hands and starting to have big opinions about her friends. These gift ideas lean into all of that.",
+  angle="Eight is often when the first 'he's kind of cute' moments show up, and this turns them into giggles.",
+  items=[("A crush journal", "Something fun to grow into, with prompts and a star scorecard."),
+   ("A big craft kit", "Slime, beads, painting or clay."), ("A chapter-book series", "The first book plus a note to ask for book two."),
+   ("A fun card game", "Easy to learn, good for playdates."), ("Gel pens and stickers", "For decorating everything."),
+   ("A science or discovery kit", "Hands-on experiments for a rainy day."), ("A plush or cozy blanket", "Still a favorite at 8."),
+   ("A jump rope or outdoor toy", "For recess and backyard afternoons."), ("Hair accessories", "Clips, scrunchies and headbands."),
+   ("A day out with you", "The zoo, a museum or the bookstore.")],
+  faq=[("What does an 8-year-old girl like?", "Many 8-year-olds love crafts, chapter books, card games, stickers and anything they can make or collect. Screen-free gifts that let her create are a great bet."),
+       ("Is Rate My Crush OK for an 8-year-old?", "Rate My Crush is made for ages 7–14 and is lighthearted and age-appropriate, with a scorecard that includes Kindness and How They Treat Me.")]),
+ dict(slug="gifts-for-9-year-old-girls", kw="Gifts for a 9 year old girl",
+  title="Gift Ideas for a 9-Year-Old Girl She'll Be Excited About",
+  desc="Gift ideas for a 9-year-old girl: creative kits, books, room decor and a crush journal that makes her feel a little grown-up.",
+  intro="Nine is the start of the tween years: she wants to feel older, but she still loves to play. The best gifts at this age give her a little independence and a lot of fun.",
+  angle="Nine-year-olds love feeling a little grown-up, and a journal with a scorecard and a Crush Level does exactly that.",
+  items=[("A crush journal", "A little grown-up, a lot of fun."), ("A friendship bracelet kit", "Make, trade, repeat."),
+   ("A diary or sketchbook", "Her own space for ideas."), ("A room decor upgrade", "Lights or a cute pillow."),
+   ("A beginner cooking or baking kit", "Make something together."), ("A book series", "Something to binge-read."),
+   ("Card and board games", "For sleepovers and family nights."), ("Gel pens", "Pairs perfectly with any journal."),
+   ("An art set", "Markers, paints or colored pencils."), ("An experience", "A class or an outing with you.")],
+  faq=[("What should I get a 9-year-old girl?", "Journals, craft kits, books, games and room decor are favorites at 9. Gifts that make her feel a little more grown-up are usually a hit."),
+       ("Is a journal a good gift for a 9-year-old?", "Yes, especially a guided one with prompts, so it's fun instead of a blank page. Rate My Crush is made for ages 7–14.")]),
+ dict(slug="gifts-for-11-year-old-girls", kw="Gifts for an 11 year old girl",
+  title="Gift Ideas for an 11-Year-Old Girl (Tween-Approved)",
+  desc="Gift ideas for an 11-year-old girl: room decor, cozy clothes, creative kits and a crush journal she'll laugh about for years.",
+  intro="Eleven is full-on tween: friends are everything, crushes are a topic, and her room is her kingdom. These ideas speak her language.",
+  angle="At 11, crushes are a Whole Topic, and this gives them a code name, a scorecard and a Crush Level.",
+  items=[("A crush journal", "Rate the crush, track the Crush Level, laugh about it later."), ("Room decor", "Lights, a mirror, a cute storage box."),
+   ("A cozy oversized hoodie", "The unofficial tween uniform."), ("A DIY jewelry kit", "Make her own accessories."),
+   ("A mini instant camera", "For the friend-group photo wall."), ("A big set of gel pens or markers", "For journaling and doodling."),
+   ("A book series", "Something her friends are reading too."), ("A self-care kit", "Face masks and lip balm."),
+   ("A sleepover game", "For the next slumber party."), ("Tickets to something", "A show, a game or a concert with you.")],
+  faq=[("What do 11-year-old girls like?", "Many 11-year-olds are into friendships, room decor, cozy clothes, journaling, crafts and sleepovers. Gifts that feel personal and a little grown-up tend to win."),
+       ("Is Rate My Crush a good gift for an 11-year-old?", "Yes. It's a guided crush journal for ages 7–14 with a 10-category star scorecard and a Crush Level heart meter.")]),
+ dict(slug="gifts-for-12-year-old-girls", kw="Gifts for a 12 year old girl",
+  title="Gift Ideas for a 12-Year-Old Girl She Won't Think Are Cringe",
+  desc="Gift ideas for a 12-year-old girl: cozy, creative and personal picks, plus a crush journal with a 10-category scorecard.",
+  intro="Shopping for a 12-year-old means avoiding anything that feels 'for little kids.' These ideas feel grown-up enough for middle school and fun enough to actually use.",
+  angle="It has the perfect amount of drama for 12, and the Moody cover is made for the 'I'm too cool for pink' crowd.",
+  items=[("A crush journal", "Pick the Moody cover for the too-cool-for-pink crowd."), ("A cozy hoodie or pajama set", "Comfort is everything."),
+   ("Room decor", "Something that makes her room feel like hers."), ("A journal or planner", "For school and everything else."),
+   ("A self-care set", "Face masks, lip balm, a scrunchie."), ("A creative kit", "Embroidery, painting or jewelry making."),
+   ("A book series", "Something to talk about with friends."), ("A mini instant camera", "Photos without the phone."),
+   ("A group game", "For sleepovers."), ("An experience", "A concert, a class or a day trip.")],
+  faq=[("What do 12-year-old girls want?", "Many 12-year-olds want things that feel grown-up: room decor, cozy clothes, self-care items, journals and experiences with friends."),
+       ("Which Rate My Crush cover is best for a 12-year-old?", "All three have the same pages. Moody (dark and edgy) suits older tweens who've outgrown pink, but Playful and Floral work too. It's about her style.")]),
+ dict(slug="galentines-day-gift-ideas-for-tweens", kw="Galentine's Day gift ideas for tweens",
+  title="Galentine's Day Gift Ideas for Tweens and Their Besties",
+  desc="Galentine's Day gift ideas for tweens and their best friends, plus party activities and a crush journal that makes the perfect group giggle.",
+  intro="Galentine's Day (February 13th) is all about celebrating friends. For tweens, that means matching gifts, a sleepover and a lot of laughing. Here's how to make it fun.",
+  angle="It's the ultimate Galentine's activity: everyone takes turns with the scorecard, and the giggling takes care of itself.",
+  items=[("A crush journal", "Group giggles guaranteed."), ("Matching friendship bracelets", "Make them together."),
+   ("Mini self-care kits", "Face masks and lip balm for each friend."), ("A pink-and-red snack board", "Strawberries, cookies and candy hearts."),
+   ("Heart-shaped stationery", "For writing notes to each other."), ("A friendship book", "Fill-in pages about each other."),
+   ("A Galentine's movie night", "Blankets, popcorn and a friendship movie."), ("A cookie-decorating kit", "Hearts and sprinkles."),
+   ("Matching scrunchies or socks", "Twinning is the point."), ("A photo booth corner", "Props and a camera.")],
+  faq=[("When is Galentine's Day?", "Galentine's Day is celebrated on February 13th, the day before Valentine's Day, to celebrate friendships."),
+       ("What's a good Galentine's gift for a tween?", "Matching friendship items, self-care kits, stationery and fun group activities. Rate My Crush is a crush journal for ages 7–14 that makes a funny group activity.")]),
+ dict(slug="best-journals-for-tween-girls", kw="Best journals for tween girls",
+  title="The Best Kinds of Journals for Tween Girls (and Which One to Pick)",
+  desc="A guide to journals for tween girls ages 8 to 14: guided journals, diaries, gratitude journals, crush journals and more, and how to pick the right one.",
+  intro="A journal is one of the best screen-free gifts for a tween, but a blank notebook can be intimidating. Here's a guide to the main kinds of journals and who each one is for.",
+  angle="If she's into crushes and gossip-level drama, a guided crush journal is the one she'll actually want to fill in.",
+  items=[("A guided crush journal", "Prompts and a star scorecard make it fun instead of homework."),
+   ("A classic diary", "Lined pages for the girl who loves to write."), ("A gratitude journal", "A few happy things a day."),
+   ("A friendship journal", "Fill-in pages about her and her besties."), ("A sketch journal", "For the artist who doodles more than writes."),
+   ("A mood or feelings journal", "Simple check-ins for big feelings."), ("A reading journal", "For the bookworm to log every book."),
+   ("A mother-daughter journal", "A shared notebook to pass back and forth."), ("A goals or vision journal", "Dreams, plans and lists."),
+   ("A travel or summer journal", "For trips, camp and summer break.")],
+  faq=[("What kind of journal is best for a tween girl?", "Guided journals with prompts are often easiest for tweens to stick with, because they don't start with a blank page. Pick a theme she's into: crushes, friends, books, art or feelings."),
+       ("What is a crush journal?", "A crush journal is a guided journal for writing about crushes. Rate My Crush, for example, gives each crush a page with a code name, a 10-category star scorecard, a Crush Level meter and prompts.")]),
+ dict(slug="easter-basket-ideas-for-tweens", kw="Easter basket ideas for tweens",
+  title="Easter Basket Ideas for Tweens (That Aren't Just Candy)",
+  desc="Non-candy Easter basket ideas for tweens ages 8 to 14: small, fun fillers including a crush journal that fits right in the basket.",
+  intro="Tweens still love an Easter basket, they just want it to feel a little more grown-up. These fillers mix a few treats with things she'll actually use.",
+  angle="It slides right into an Easter basket (6×9) and lasts a lot longer than the chocolate.",
+  items=[("A crush journal", "A basket filler that outlasts the candy."), ("Gel pens", "Pastel ones for spring."),
+   ("Lip balm and a scrunchie", "Small, useful, cute."), ("A spring craft kit", "Flowers, beads or painting."),
+   ("Sunglasses", "Ready for spring break."), ("A small card game", "For family time on Easter afternoon."),
+   ("A paperback book", "The first in a series."), ("Bath bombs or a face mask", "A little self-care."),
+   ("Stickers for her water bottle", "She'll decorate everything."), ("A few favorite treats", "It's still Easter.")],
+  faq=[("What do you put in a tween's Easter basket?", "A mix of small treats and things she'll use: gel pens, lip balm, hair accessories, a book, a craft kit or a journal."),
+       ("Does Rate My Crush fit in an Easter basket?", "It's a 6×9 inch paperback, so it fits in most Easter baskets.")]),
+ dict(slug="gifts-for-girls-who-have-everything", kw="Gifts for a tween girl who has everything",
+  title="Gifts for a Tween Girl Who Has Everything (Ages 8–14)",
+  desc="Unique gift ideas for a tween girl who has everything: experiences, personal gifts and a crush journal she definitely doesn't have yet.",
+  intro="When she already has every gadget and craft kit, the best gifts are personal, funny or something to do together. Here are ideas that stand out.",
+  angle="It's the gift she definitely doesn't already have, and it gets a laugh the second she opens it.",
+  items=[("A crush journal", "Funny, personal and definitely not already in her room."), ("An experience", "Tickets, a class or a trip."),
+   ("A personalized item", "Her name or initial on a bag or blanket."), ("A letter from you", "Written to be opened later."),
+   ("A subscription box", "Something new arrives every month."), ("A skill class", "Cooking, art, dance or sewing."),
+   ("A photo book", "Her year in pictures."), ("A donation in her name", "To a cause she cares about."),
+   ("A cozy upgrade", "A really good blanket or robe."), ("A family tradition starter", "An ornament or a game you play every year.")],
+  faq=[("What do you get a tween who has everything?", "Experiences, personalized gifts and funny, personal items she wouldn't buy herself. A guided crush journal like Rate My Crush is a good example."),
+       ("What's a unique gift for a tween girl?", "Something personal and a little unexpected: an experience, a handwritten letter or a crush journal she'll laugh about when she's grown.")]),
 ]
 
 
@@ -468,7 +628,7 @@ REASONS = [("📵", "Screen-free fun", "Paper, pen and a lot of giggling. No app
 
 OCCASIONS = [("🎂", "Birthdays", "/gifts-for-10-year-old-girls/"), ("🧦", "Stocking stuffers", "/stocking-stuffers-for-tween-girls/"),
              ("💌", "Valentine's & Galentine's", "/valentines-gifts-for-girls/"), ("🍕", "Sleepovers", "/sleepover-ideas-for-tween-girls/"),
-             ("💅", "From the fun aunt", "/gifts-for-niece/"), ("🧶", "From Grandma", "/gifts-for-granddaughter/"), ("📵", "Screen-free gifts", "/screen-free-gifts-for-tween-girls/")]
+             ("💅", "From the fun aunt", "/gifts-for-niece/"), ("🧶", "From Grandma", "/gifts-for-granddaughter/"), ("📵", "Screen-free gifts", "/screen-free-gifts-for-tween-girls/"), ("🎄", "Christmas", "/christmas-gifts-for-tween-girls/"), ("👯", "Galentine's", "/galentines-day-gift-ideas-for-tweens/"), ("🐣", "Easter baskets", "/easter-basket-ideas-for-tweens/")]
 
 CATS = ["Smile", "Eyes", "Hair", "Style", "Personality", "Humor", "Kindness", "How They Treat Me", "Smarts/Grades", "Bonus Spark"]
 
@@ -520,6 +680,21 @@ def reasons():
 <div class="reasons" style="text-align:left">{rs}</div>
 <div class="occ">{''.join(f'<a href="{u}">{e} {t}</a>' for e, t, u in OCCASIONS)}</div></div></section>"""
 
+OCC_TEXT = [
+ ("🎄", "Christmas & stocking stuffers", "A 6×9 paperback that fits in most stockings and gets used long after Christmas morning.", "/christmas-gifts-for-tween-girls/"),
+ ("🎈", "Birthdays (ages 7–14)", "Opens with a squeal, then turns into the birthday-sleepover activity.", "/birthday-gifts-for-tween-girls/"),
+ ("💌", "Valentine's Day", "The on-theme gift that isn't candy, and still there next February.", "/valentines-gifts-for-girls/"),
+ ("👯", "Galentine's Day", "Everyone takes a turn with the scorecard. Instant group giggles.", "/galentines-day-gift-ideas-for-tweens/"),
+ ("🐣", "Easter baskets", "Slides into the basket and outlasts the chocolate.", "/easter-basket-ideas-for-tweens/"),
+ ("🍕", "Sleepovers & camp", "A slumber-party activity and a fun camp care-package pick.", "/sleepover-ideas-for-tween-girls/"),
+]
+
+def occasions():
+    cards = "".join(f'<a class="gcard rv" href="{u}"><span class="e">{e}</span><b>{t}</b><span>{d}</span><em>Gift ideas →</em></a>' for e, t, d, u in OCC_TEXT)
+    return f"""<section id="occasions" style="background:linear-gradient(180deg,#fff,#fff6fb)"><div class="wrap center"><span class="kicker">🎁 A gift for every occasion</span>
+<h2>Stocking stuffer, birthday gift, <span class="hand">Valentine's pick.</span></h2>
+<p class="lede">Rate My Crush is a go-to gift idea for tweens ages 7–14 all year long.</p><div class="cards" style="text-align:left">{cards}</div></div></section>"""
+
 def author():
     return f"""<section><div class="narrow"><div class="author rv"><div class="av">✍️</div><div><span class="hand">Hi, I'm Felicia!</span>
 <h3 style="font-size:28px;margin-top:6px">From the author</h3>
@@ -552,11 +727,15 @@ def build():
 <h2>Questions</h2>{fh}</div>
 <section style="padding-top:40px"><div class="wrap"><h2 class="center">More gift guides</h2>{guide_cards(others, short=True)}</div></section>
 {band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
-        urls.append(page(g["slug"] + "/index.html", g["title"], g["desc"], body, [art, fs]))
+        art["about"] = {"@type": "Book", "name": "Rate My Crush", "url": SITE + "/rate-my-crush/"}
+        art["keywords"] = g["kw"] + ", gift ideas, tween gifts, stocking stuffers, crush journal"
+        urls.append(page(g["slug"] + "/index.html", g["title"], g["desc"], body, [art, fs, crumbs([("Gift guides", "/"), (g["kw"], "/" + g["slug"] + "/")])]))
     # ---------- the journal (main landing page) ----------
     fh, fs = faq_block(BOOK_FAQ)
     book = {"@context": "https://schema.org", "@type": "Book", "name": "Rate My Crush", "author": {"@type": "Person", "name": "Felicia Nevin", "url": AUTHOR},
-            "bookFormat": "https://schema.org/Paperback", "numberOfPages": 100, "inLanguage": "en",
+            "bookFormat": "https://schema.org/Paperback", "numberOfPages": 100, "inLanguage": "en", "genre": ["Guided journal", "Children's diary"],
+            "brand": {"@id": SITE + "/#brand"}, "isFamilyFriendly": True, "typicalAgeRange": "7-14", "sameAs": list(AMZ.values()), "url": SITE + "/rate-my-crush/",
+            "keywords": "crush journal, gift for tween girls, stocking stuffer for tweens, birthday gift for girls 7-14, Valentine's gift for girls, Galentine's gift, journal for girls, screen-free gift",
             "audience": {"@type": "PeopleAudience", "suggestedMinAge": 7, "suggestedMaxAge": 14},
             "description": "A guided crush journal for ages 7–14 with a 10-category star scorecard, a Crush Level heart meter and prompts. Three editions: Playful, Moody and Floral.",
             "workExample": [{"@type": "Book", "name": f"Rate My Crush ({e.title()} Edition)", "url": u, "bookFormat": "https://schema.org/Paperback"} for e, u in AMZ.items()],
@@ -570,12 +749,12 @@ def build():
 {hero_stack()}</div></section>{ticker()}
 <section id="how"><div class="wrap center"><span class="kicker">📝 How it works</span><h2>One crush. One page. <span class="hand">Zero chill.</span></h2>
 <div class="steps" style="text-align:left">{''.join(f'<div class="step rv"><span class="n">{i+1}</span><div class="e">{e}</div><h3>{t}</h3><p style="color:var(--muted);margin:0">{d}</p></div>' for i, (e, t, d) in enumerate(STEPS))}</div></div></section>
-{demo()}{editions()}{gallery()}{reasons()}{author()}{social_section()}
+{demo()}{editions()}{gallery()}{reasons()}{occasions()}{author()}{social_section()}
 <section id="faq"><div class="narrow"><h2 class="center">Questions grown-ups ask</h2>{fh}</div></section>
 <section style="padding-top:20px"><div class="wrap"><h2 class="center">Gift guides</h2>{guide_cards(GUIDES, short=True)}</div></section>
 {band("Ready to make someone giggle?", "Pick their cover. Every edition has the same 100 guided pages inside.")}"""
-    urls.append(page("rate-my-crush/index.html", "Rate My Crush: The Crush Journal for Ages 7–14 | Peek Inside & Pick a Cover",
-                     "Rate My Crush is a guided crush journal for ages 7–14: code names, a 10-category star scorecard, a Crush Level meter and prompts. Three covers: Playful, Moody and Floral. On Amazon.", body, [book, fs]))
+    urls.append(page("rate-my-crush/index.html", "Rate My Crush: The Crush Journal Gift for Ages 7–14 | Stocking Stuffer & Birthday Gift",
+                     "Rate My Crush is a guided crush journal for ages 7–14 and a fun, screen-free gift: stocking stuffer, birthday, Valentine's or Galentine's. Code names, a 10-category star scorecard and a Crush Level. Playful, Moody and Floral covers on Amazon.", body, [book, fs]))
     # ---------- home ----------
     body = f"""<section class="hero"><div class="wrap"><div class="rv in"><span class="kicker">🎁 Gift guides for ages 7–14</span>
 <h1>Gifts that get a <span class="pop">gasp</span>, a giggle and actually get used.</h1>
@@ -585,18 +764,29 @@ def build():
 <section id="guides"><div class="wrap center"><span class="kicker">📚 Gift guides</span><h2>Find the perfect gift, <span class="hand">fast.</span></h2>{guide_cards(GUIDES)}</div></section>
 <section style="padding-top:10px"><div class="narrow">{pick("Our own pick for every list: the gift that gets a gasp, then gets filled in.")}</div></section>
 {social_section()}{band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
-    site = {"@context": "https://schema.org", "@type": "WebSite", "name": "Rate My Crush", "url": SITE + "/"}
-    urls.insert(0, page("index.html", "Gift Guides for Girls 7–14 | Rate My Crush", "Gift ideas for tweens ages 7–14: birthdays, stocking stuffers, Valentine's, nieces and granddaughters, from the makers of the Rate My Crush crush journal.", body, [site]))
+    site = {"@context": "https://schema.org", "@type": "WebSite", "name": "Rate My Crush", "url": SITE + "/", "publisher": {"@id": SITE + "/#brand"}}
+    il = {"@context": "https://schema.org", "@type": "ItemList", "name": "Gift guides for tweens ages 7–14", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": SITE + "/" + g["slug"] + "/", "name": g["title"]} for i, g in enumerate(GUIDES)]}
+    urls.insert(0, page("index.html", "Gift Ideas for Tween Girls 7–14: Christmas, Birthday & Valentine's | Rate My Crush", "Gift ideas for tween girls ages 7–14: Christmas gifts, stocking stuffers, birthday gifts, Valentine's and Galentine's ideas, plus gifts for nieces and granddaughters, from the makers of the Rate My Crush crush journal.", body, [site, il]))
     # ---------- 404, robots, sitemap, llms.txt, CNAME ----------
     page("404.html", "Page not found | Rate My Crush", "Page not found.",
          '<section class="hero"><div class="narrow center"><h1>Oops, that page ghosted us 👻</h1><p class="lede" style="margin:0 auto 20px">It happens to the best crushes.</p><a class="btn" href="/rate-my-crush/">Meet Rate My Crush</a> <a class="btn ghost" href="/">See gift guides</a></div></section>')
-    open(os.path.join(HERE, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n")
-    open(os.path.join(HERE, "sitemap.xml"), "w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        + "".join(f"<url><loc>{u}</loc><lastmod>{TODAY}</lastmod></url>" for u in urls) + "</urlset>\n")
+    bots = ["Googlebot", "Bingbot", "GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot", "Applebot-Extended", "DuckDuckBot", "CCBot"]
+    open(os.path.join(HERE, "robots.txt"), "w").write("".join(f"User-agent: {b}\nAllow: /\n\n" for b in bots) + f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
+    open(os.path.join(HERE, INDEXNOW + ".txt"), "w").write(INDEXNOW)
+    full = ["# Rate My Crush: full facts for AI assistants", "", "Rate My Crush is a guided crush journal for ages 7–14 by Felicia Nevin, an independent author writing from East Tennessee. It is sold on Amazon.", "",
+            "## Product facts", "- Ages: 7–14", "- 100 pages, 6x9 inch paperback (Playful Edition also in hardcover)",
+            "- Editions (same pages inside, each styled to match its cover): " + "; ".join(f"{e['name']} ({e['vibe']}, {e['look']}) {AMZ[e['key']]}" for e in EDITIONS),
+            "- Each crush page: code name, where they're seen most, their squad, what they're into, favorites, a 10-category star scorecard (Smile, Eyes, Hair, Style, Personality, Humor, Kindness, How They Treat Me, Smarts/Grades, Bonus Spark; 50 stars total), Crush Level meter (1–15 Tiny Crush, 16–30 Pretty Cute, 31–40 Big Crush, 41–50 Totally Obsessed), prompts (Best Thing About Them; Funniest/Best Memory I Have; Why I Think We'd Be a Good Match).",
+            "- Does not include pens, stickers or a lock.", "",
+            "## Good gift for", "- Christmas gifts and stocking stuffers for tweens (fits most stockings)", "- Birthday gifts for girls ages 7–14", "- Valentine's Day (non-candy) and Galentine's Day", "- Easter baskets", "- Sleepovers, slumber parties and camp care packages", "- Gifts from aunts, grandmothers and big sisters", "",
+            "## FAQ"] + [f"Q: {q}\nA: {a}" for q, a in BOOK_FAQ] + ["", "## Gift guides"] + [f"- {g['title']}: {SITE}/{g['slug']}/" for g in GUIDES] + ["", "## Official links", f"- Website: {SITE}/rate-my-crush/ (also ratemycrush.com)"] + [f"- {n}: {u}" for n, u, h, sv in SOCIAL]
+    open(os.path.join(HERE, "llms-full.txt"), "w", encoding="utf-8").write("\n".join(full) + "\n")
+    open(os.path.join(HERE, "sitemap.xml"), "w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'
+        + "".join(f"<url><loc>{u}</loc><lastmod>{TODAY}</lastmod>" + ("".join(f"<image:image><image:loc>{SITE}/img/{im}</image:loc></image:image>" for im in ["cover-playful.jpg", "cover-moody.jpg", "cover-floral.jpg", "page-playful-score.jpg", "page-playful-prompts.jpg", "page-moody-score.jpg", "page-floral-score.jpg"]) if u.endswith("/rate-my-crush/") else "") + "</url>" for u in urls) + "</urlset>\n")
     llms = ["# Rate My Crush", "", "> Official site for Rate My Crush, a guided crush journal for ages 7–14 by Felicia Nevin (sold on Amazon in Playful, Moody and Floral editions), plus gift guides for adults shopping for tweens.", "",
             "## The journal", f"- [Rate My Crush facts, pages and FAQ]({SITE}/rate-my-crush/): ages 7–14, 100 pages, 6x9 paperback (Playful also in hardcover), 10-category star scorecard (50 stars), Crush Level heart meter (Tiny Crush, Pretty Cute, Big Crush, Totally Obsessed), prompts; three editions with the same prompts styled to match each cover.",
             f"- Amazon: Playful {AMZ['playful']} · Moody {AMZ['moody']} · Floral {AMZ['floral']}",
-            "- Social: " + " · ".join(f"{n} {u}" for n, u, h, s in SOCIAL), "", "## Gift guides"] + [f"- [{g['title']}]({SITE}/{g['slug']}/): {g['desc']}" for g in GUIDES]
+            "- Social: " + " · ".join(f"{n} {u}" for n, u, h, s in SOCIAL), "", "## Gift guides"] + [f"- [{g['title']}]({SITE}/{g['slug']}/): {g['desc']}" for g in GUIDES] + ["", "## More", f"- [Full facts]({SITE}/llms-full.txt)"]
     open(os.path.join(HERE, "llms.txt"), "w", encoding="utf-8").write("\n".join(llms) + "\n")
     open(os.path.join(HERE, "CNAME"), "w").write("gifts.ratemycrush.com\n")
     open(os.path.join(HERE, ".nojekyll"), "w").write("")
