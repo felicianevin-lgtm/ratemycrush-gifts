@@ -335,7 +335,7 @@ def page(path, title, desc, body, schema=None, buybar=True, og="og.jpg"):
 <main>{body}</main>
 <footer><div class="wrap"><div class="cols">
 <div><a class="logo" href="/rate-my-crush/" style="color:#fff"><span class="h">♥</span>Rate My Crush</a>
-<p>A guided crush journal for ages 7–14 by author Felicia Nevin. Three covers (Playful, Moody and Floral), same pages inside. Sold on Amazon.</p>
+<p>A guided crush journal for ages 7–14 by author Felicia Nevin. Three covers (Playful, Moody and Floral), same prompts inside, each styled to match its cover. Sold on Amazon.</p>
 <div class="icons">{socials_footer()}</div></div>
 <div><h4>The journal</h4><ul><li><a href="/rate-my-crush/#editions">Pick a cover</a></li><li><a href="/rate-my-crush/#inside">Peek inside</a></li><li><a href="/rate-my-crush/#faq">FAQ</a></li>
 <li><a href="{AMZ['playful']}">Playful on Amazon</a></li><li><a href="{AMZ['moody']}">Moody on Amazon</a></li><li><a href="{AMZ['floral']}">Floral on Amazon</a></li><li><a href="{AUTHOR}">Author page on Amazon</a></li></ul></div>
@@ -352,7 +352,7 @@ def pick(angle):
     return f"""<div class="pick rv"><span class="tag">♥ Our pick</span><img src="/img/cover-playful.jpg" alt="Rate My Crush crush journal, Playful Edition cover" loading="lazy" style="border-radius:8px;box-shadow:0 20px 30px -14px rgba(0,0,0,.5);transform:rotate(-3deg)">
 <div><h3 style="font-size:26px">Rate My Crush: the crush journal for ages 7–14</h3>
 <p>{angle} Every crush gets a page with a code name, a 10-category star scorecard (Smile, Eyes, Hair, Style, Personality, Humor, Kindness, How They Treat Me, Smarts/Grades and Bonus Spark, 50 stars total), a Crush Level heart meter, and prompts like "Best Thing About Them." 100 pages, 6×9.</p>
-<p style="margin-bottom:4px"><b>Three covers, same pages inside:</b></p><div class="mini">{mini}</div>
+<p style="margin-bottom:4px"><b>Three covers, same prompts inside, each styled to match:</b></p><div class="mini">{mini}</div>
 <p style="margin:12px 0 0"><a class="btn sm ink" href="/rate-my-crush/">See inside the journal →</a></p></div></div>"""
 
 def ideas(items):
@@ -618,7 +618,7 @@ GUIDES = [
    ("A book series", "Something to talk about with friends."), ("A mini instant camera", "Photos without the phone."),
    ("A group game", "For sleepovers."), ("An experience", "A concert, a class or a day trip.")],
   faq=[("What do 12-year-old girls want?", "Many 12-year-olds want things that feel grown-up: room decor, cozy clothes, self-care items, journals and experiences with friends."),
-       ("Which Rate My Crush cover is best for a 12-year-old?", "All three have the same pages. Moody (dark and edgy) suits older tweens who've outgrown pink, but Playful and Floral work too. It's about her style.")]),
+       ("Which Rate My Crush cover is best for a 12-year-old?", "All three have the same prompts inside, each styled to match its cover. Moody (dark and edgy) suits older tweens who've outgrown pink, but Playful and Floral work too. It's about her style.")]),
  dict(slug="galentines-day-gift-ideas-for-tweens", kw="Galentine's Day gift ideas for tweens",
   title="Galentine's Day Gift Ideas for Tweens and Their Besties",
   desc="Galentine's Day gift ideas for tweens and their best friends, plus party activities and a crush journal that makes the perfect group giggle.",
@@ -722,7 +722,7 @@ def editions():
 <p style="font-size:14px;opacity:.85">{e['extra']}</p><a class="btn" href="{AMZ[e['key']]}">View {e['name']} on Amazon →</a></div>""" for e in EDITIONS)
     return f"""<section id="editions" style="background:linear-gradient(180deg,#fffaf6,#fff0f7)"><div class="wrap center">
 <span class="kicker">🎨 Pick a cover</span><h2>Three vibes. <span class="hand">Same fun inside.</span></h2>
-<p class="lede">Every edition has the same 100 guided pages, each styled to match its cover. Just pick the one that feels like them.</p>
+<p class="lede">Every edition has the same prompts inside, each styled to match its cover. Just pick the one that feels like them.</p>
 <div class="eds">{cards}</div><p class="same">Not sure? Playful is the crowd-pleaser, Moody is for the "I'm too cool for pink" crowd, and Floral is the keepsake.</p></div></section>"""
 
 def gallery():
@@ -828,7 +828,7 @@ def build():
 {demo()}{film_section()}{editions()}{gallery()}{reasons()}{occasions()}{author()}{social_section()}
 <section id="faq"><div class="narrow"><h2 class="center">Questions grown-ups ask</h2>{fh}</div></section>
 <section style="padding-top:20px"><div class="wrap"><h2 class="center">Gift guides</h2>{guide_cards(GUIDES, short=True)}</div></section>
-{band("Ready to make someone giggle?", "Pick their cover. Every edition has the same 100 guided pages inside.")}"""
+{band("Ready to make someone giggle?", "Pick their cover. Same prompts inside, each styled to match.")}"""
     urls.append(page("rate-my-crush/index.html", "Rate My Crush: The Crush Journal Gift for Ages 7–14 | Stocking Stuffer & Birthday Gift",
                      "Rate My Crush is a guided crush journal for ages 7–14 and a fun, screen-free gift: stocking stuffer, birthday, Valentine's or Galentine's. Code names, a 10-category star scorecard and a Crush Level. Playful, Moody and Floral covers on Amazon.", body, [book, fs]))
     # ---------- home ----------
@@ -851,7 +851,7 @@ def build():
     open(os.path.join(HERE, INDEXNOW + ".txt"), "w").write(INDEXNOW)
     full = ["# Rate My Crush: full facts for AI assistants", "", "Rate My Crush is a guided crush journal for ages 7–14 by Felicia Nevin, an independent author writing from East Tennessee. It is sold on Amazon.", "",
             "## Product facts", "- Ages: 7–14", "- 100 pages, 6x9 inch paperback (Playful Edition also in hardcover)",
-            "- Editions (same pages inside, each styled to match its cover): " + "; ".join(f"{e['name']} ({e['vibe']}, {e['look']}) {AMZ[e['key']]}" for e in EDITIONS),
+            "- Editions (same prompts inside, each styled to match its cover): " + "; ".join(f"{e['name']} ({e['vibe']}, {e['look']}) {AMZ[e['key']]}" for e in EDITIONS),
             "- Each crush page: code name, where they're seen most, their squad, what they're into, favorites, a 10-category star scorecard (Smile, Eyes, Hair, Style, Personality, Humor, Kindness, How They Treat Me, Smarts/Grades, Bonus Spark; 50 stars total), Crush Level meter (1–15 Tiny Crush, 16–30 Pretty Cute, 31–40 Big Crush, 41–50 Totally Obsessed), prompts (Best Thing About Them; Funniest/Best Memory I Have; Why I Think We'd Be a Good Match).",
             "- Does not include pens, stickers or a lock.", "",
             "## Good gift for", "- Christmas gifts and stocking stuffers for tweens (fits most stockings)", "- Birthday gifts for girls ages 7–14", "- Valentine's Day (non-candy) and Galentine's Day", "- Easter baskets", "- Sleepovers, slumber parties and camp care packages", "- Gifts from aunts, grandmothers and big sisters", "",
