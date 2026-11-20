@@ -337,7 +337,7 @@ def page(path, title, desc, body, schema=None, buybar=True, og="og.jpg"):
 <div><a class="logo" href="/rate-my-crush/" style="color:#fff"><span class="h">♥</span>Rate My Crush</a>
 <p>A guided crush journal for ages 7–14 by author Felicia Nevin. Three covers (Playful, Moody and Floral), same prompts inside, each styled to match its cover. Sold on Amazon.</p>
 <div class="icons">{socials_footer()}</div></div>
-<div><h4>The journal</h4><ul><li><a href="/rate-my-crush/#editions">Pick a cover</a></li><li><a href="/rate-my-crush/#inside">Peek inside</a></li><li><a href="/rate-my-crush/#faq">FAQ</a></li>
+<div><h4>The journal</h4><ul><li><a href="/rate-my-crush/#editions">Pick a cover</a></li><li><a href="/rate-my-crush/#inside">Peek inside</a></li><li><a href="/rate-my-crush/#faq">FAQ</a></li><li><a href="/sleepover-game/">Free sleepover game</a></li>
 <li><a href="{AMZ['playful']}">Playful on Amazon</a></li><li><a href="{AMZ['moody']}">Moody on Amazon</a></li><li><a href="{AMZ['floral']}">Floral on Amazon</a></li><li><a href="{AUTHOR}">Author page on Amazon</a></li></ul></div>
 <div><h4>Gift guides</h4><ul>{guides_links}</ul></div></div>
 <p class="fine">Gift ideas on this site are general suggestions, not sponsored placements. Product details can change; check the Amazon listing for current details. Sample scorecards on this site are filled in by us for fun. Questions: <a href="mailto:hello@ratemycrush.com">hello@ratemycrush.com</a> · <a href="/sitemap.xml">Sitemap</a></p></div></footer>
@@ -786,6 +786,51 @@ def band(title, sub):
     return f"""<section><div class="wrap"><div class="band rv"><span class="float" style="left:5%;top:14%">💗</span><span class="float" style="right:6%;top:20%;animation-delay:-3s">⭐</span>
 <h2>{title}</h2><p>{sub}</p><div class="row3">{btns}</div></div></div></section>"""
 
+GAME_YT = "ZwCLW1o27yQ"
+GAME_NOTE = '<div class="note">💘 <b>Free sleepover game:</b> <a href="/sleepover-game/">Who\'s My Mystery Crush?</a> Everyone picks a secret crush, then takes turns asking questions and guessing. Free printable and a how-to video.</div>'
+GAME_PDF = "/printables/whos-my-mystery-crush-sleepover-game.pdf"
+GAME_QS = ["What's their favorite snack?", "What color do they wear the most?", "Are they real or made-up?", "Where would you find them on a Saturday?",
+           "What animal are they most like?", "What song plays when they walk in?", "What's their superpower?", "What would they order at a drive-thru?",
+           "Where would they go on vacation?", "Would they share their fries?", "What's one word that describes them?", "What would they do at THIS sleepover?",
+           "Do their laugh! (no words)", "Do their walk! (no words)"]
+GAME_FAQ = [("What ages is the game for?", "It's made for girls about 7 to 14, and it's easy enough for younger siblings to join in."),
+            ("What do we need to play?", "Nothing but a few friends. The free printable has the rules, a question list and a heart tracker, but once you know the rules you can play anywhere, even in the car."),
+            ("How many players?", "Three or more. It's even more fun with a big sleepover group."),
+            ("Does anyone have to share a real crush?", "No. Players can pick anyone everybody in the room would know, like a cartoon character, a singer or an athlete. A real crush is only if they want to."),
+            ("Is the printable free?", "Yes, it's free to print for personal use.")]
+
+def game_page():
+    fh, fs = faq_block(GAME_FAQ)
+    vid = {"@context": "https://schema.org", "@type": "VideoObject", "name": "Who's My Mystery Crush? Free Sleepover Game for Girls (How to Play)",
+           "description": "How to play Who's My Mystery Crush?, a free guessing game for sleepovers: pick a secret crush, take turns asking questions, guess right to win a heart.",
+           "thumbnailUrl": f"https://i.ytimg.com/vi/{GAME_YT}/hqdefault.jpg", "uploadDate": "2026-11-20", "embedUrl": f"https://www.youtube-nocookie.com/embed/{GAME_YT}",
+           "contentUrl": f"https://www.youtube.com/watch?v={GAME_YT}", "duration": "PT1M44S"}
+    qs = "".join(f"<li>{esc(q)}</li>" for q in GAME_QS)
+    body = f"""<div class="ghero"><div class="narrow"><p class="crumb"><a href="/">Gift guides</a> › Free sleepover game</p>
+<span class="kicker">💘 Free printable · sleepover game</span><h1 style="font-size:clamp(32px,5.4vw,52px)">Who's My Mystery Crush? A Free Sleepover Game for Girls</h1>
+<p class="lede">Hosting a sleepover? Here's an easy guessing game girls 7–14 can learn in a minute: everyone picks a secret crush, takes turns asking questions, and tries to guess who it is. No supplies needed.</p>
+<div class="ctas"><a class="btn" href="{GAME_PDF}" download>Download the free printable (PDF)</a><a class="btn ghost" href="#watch">Watch how to play</a></div></div></div>
+<div class="narrow art">
+<h2 id="watch">Watch how to play (1:44)</h2>
+<div style="position:relative;padding-top:56.25%;border-radius:18px;overflow:hidden;box-shadow:0 20px 40px -20px rgba(90,35,80,.5)"><iframe src="https://www.youtube-nocookie.com/embed/{GAME_YT}" title="How to play Who's My Mystery Crush?" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>
+<h2>How to play</h2>
+<ol class="ideas">
+<li><b>Pick a secret crush.</b> Think of anyone everybody in the room would know: a cartoon character, a movie or book character, a singer, an athlete, a YouTuber, even a famous animal. A real crush is okay too, but only if you want. Keep it in your head, and no switching! Two rules: nobody who is in the room, and keep it kind.</li>
+<li><b>Take turns asking.</b> On your turn, pick any player and ask them one question from the list below (or make up your own). They answer about their secret crush, honestly and without saying the name. Then you get one guess.</li>
+<li><b>Guess right? Win a heart!</b> They say "You got me!" and pick a brand-new secret crush. Wrong guess? No big deal. It's the next player's turn.</li>
+</ol>
+<div class="note">🏆 <b>How to win:</b> the first player to 5 hearts wins. Short on time? Play until lights out, and whoever has the most hearts wins. 🤔 <b>Stuck?</b> If 3 guesses in a row miss your crush, give a hint: the first letter of their name.</div>
+<h2>The question list</h2>
+<ol class="ideas">{qs}</ol>
+<p><a class="btn" href="{GAME_PDF}" download>Print the game free (2 pages)</a></p>
+{pick("Want the real thing for the sleepover bag? Once the game's over, she can rate her actual crush in her own journal.")}
+<h2>Questions</h2>{fh}</div>
+<section style="padding-top:40px"><div class="wrap"><h2 class="center">More sleepover &amp; gift ideas</h2>{guide_cards([g for g in GUIDES if 'sleepover' in g['slug']] + [g for g in GUIDES if 'sleepover' not in g['slug']][:5], short=True)}</div></section>
+{band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
+    return page("sleepover-game/index.html", "Who's My Mystery Crush? Free Printable Sleepover Game for Girls 7–14 | Rate My Crush",
+                 "A free printable sleepover game for girls 7–14: everyone picks a secret crush, takes turns asking questions and guessing. Easy rules, a question list and a how-to video. No supplies needed.",
+                 body, [vid, fs, crumbs([("Gift guides", "/"), ("Free sleepover game", "/sleepover-game/")])])
+
 def build():
     urls = []
     # ---------- guides ----------
@@ -799,7 +844,7 @@ def build():
 <span class="kicker">{GUIDE_EMOJI.get(g['slug'], '🎁')} {esc(g['kw'])} · Updated {dt.date.today().strftime('%B %Y')}</span><h1 style="font-size:clamp(32px,5.4vw,52px)">{esc(g['title'])}</h1>
 <p class="lede">{esc(g['intro'])}</p></div></div>
 <div class="narrow art">{pick(g['angle'])}<h2>{esc(g['kw'])}: 10 ideas</h2>{ideas(g['items'])}
-<div class="note">💡 Tip: pair the journal with a set of gel pens. It doesn't come with pens.</div>
+<div class="note">💡 Tip: pair the journal with a set of gel pens. It doesn't come with pens.</div>{GAME_NOTE if ("sleepover" in g["slug"] or "camp" in g["slug"]) else ""}
 <h2>Questions</h2>{fh}</div>
 <section style="padding-top:40px"><div class="wrap"><h2 class="center">More gift guides</h2>{guide_cards(others, short=True)}</div></section>
 {band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
@@ -831,6 +876,8 @@ def build():
 {band("Ready to make someone giggle?", "Pick their cover. Same prompts inside, each styled to match.")}"""
     urls.append(page("rate-my-crush/index.html", "Rate My Crush: The Crush Journal Gift for Ages 7–14 | Stocking Stuffer & Birthday Gift",
                      "Rate My Crush is a guided crush journal for ages 7–14 and a fun, screen-free gift: stocking stuffer, birthday, Valentine's or Galentine's. Code names, a 10-category star scorecard and a Crush Level. Playful, Moody and Floral covers on Amazon.", body, [book, fs]))
+    # ---------- free sleepover game (Felicia 11/20: simple, no dice; how-to video on YouTube) ----------
+    urls.append(game_page())
     # ---------- home ----------
     body = f"""<section class="hero"><div class="wrap"><div class="rv in"><span class="kicker">🎁 Gift guides for ages 7–14</span>
 <h1>Gifts that get a <span class="pop">gasp</span>, a giggle and actually get used.</h1>
