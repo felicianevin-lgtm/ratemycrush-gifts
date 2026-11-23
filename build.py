@@ -364,7 +364,7 @@ def faq_block(qas):
          "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in qas]}
     return h, s
 
-GUIDE_EMOJI = {"gifts-for-10-year-old-girls": "🎂", "stocking-stuffers-for-tween-girls": "🧦", "gifts-for-niece": "💅",
+GUIDE_EMOJI = {"gifts-from-big-sister": "👯", "gifts-for-10-year-old-girls": "🎂", "stocking-stuffers-for-tween-girls": "🧦", "gifts-for-niece": "💅",
                "valentines-gifts-for-girls": "💌", "screen-free-gifts-for-tween-girls": "📵", "gifts-for-granddaughter": "🧶",
                "sleepover-ideas-for-tween-girls": "🍕",
                "christmas-gifts-for-tween-girls": "🎄", "birthday-gifts-for-tween-girls": "🎈", "gifts-for-8-year-old-girls": "🧸",
@@ -668,6 +668,18 @@ GUIDES = [
    ("A cozy upgrade", "A really good blanket or robe."), ("A family tradition starter", "An ornament or a game you play every year.")],
   faq=[("What do you get a tween who has everything?", "Experiences, personalized gifts and funny, personal items she wouldn't buy herself. A guided crush journal like Rate My Crush is a good example."),
        ("What's a unique gift for a tween girl?", "Something personal and a little unexpected: an experience, a handwritten letter or a crush journal she'll laugh about when she's grown.")]),
+ dict(slug="gifts-from-big-sister", kw="Gifts from a big sister to a little sister",
+  title="Gift Ideas From a Big Sister to Her Tween Little Sister (Ages 7–14)",
+  desc="Gift ideas a big sister can give a tween little sister: fun, personal picks that feel like an inside joke, including a crush journal.",
+  intro="Big sisters know the best gifts feel like an inside joke: something a little grown-up, a little silly and totally hers. Here are ideas that say 'I get you.'",
+  angle="It's the gift a big sister would give: fun, a little grown-up, and something you'll both laugh about years from now.",
+  items=[("A crush journal", "A guided journal with a 10-category scorecard. Very big-sister energy."), ("A matching set", "Matching pajamas, bracelets or keychains for the two of you."),
+   ("Your old favorites", "A book or movie you loved at her age, with a note about why."), ("A 'sister day' coupon", "Good for one outing of her choice."),
+   ("A hair accessory kit", "Clips, scrunchies and a how-to from you."), ("A playlist you made", "Songs you think she'd like, written out on a card."),
+   ("A cozy hoodie", "Bonus points if it's one she's borrowed before."), ("A photo strip frame", "For pictures of the two of you."),
+   ("A nail art kit", "Do each other's nails on a sister night."), ("A letter from you", "Advice you wish you'd had at her age.")],
+  faq=[("What should a big sister get her little sister?", "Something personal that feels like an inside joke: matching items, a 'sister day' coupon, or a fun guided crush journal like Rate My Crush."),
+       ("What's a good gift for a tween little sister?", "Gifts that feel a little grown-up but still fun: a cozy hoodie, a nail art kit, a handwritten letter, or a crush journal she'll laugh about when she's grown.")]),
 ]
 
 
