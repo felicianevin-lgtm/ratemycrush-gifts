@@ -14,7 +14,7 @@ AMZ = {"playful": "https://www.amazon.com/dp/B0FR24YJ8W", "moody": "https://www.
 AUTHOR = "https://www.amazon.com/stores/Felicia-Nevin/author/B0GHFWPC6F"
 INDEXNOW = "4f7c2a9e1b6d48e3a5c0f2d9e8b7a6c1"
 
-# BLACK FRIDAY 2026 (brief 11/17): the sale banner + sale FAQ show ONLY when today is 2026-11-24..2026-11-30 AND
+# BLACK FRIDAY 2026 (brief 11/17): the sale banner + sale FAQ show ONLY when today is 2026-11-22..2026-11-30 AND
 # Autopilot/sale_bf2026.json status.drop_live_verified is true (set by the daily task after it sees $9.99 on Amazon).
 # Outside that window they disappear on the next build (the daily task rebuilds + pushes on 11/24 and 12/1).
 def _sale():
@@ -23,9 +23,9 @@ def _sale():
     except Exception:
         return None
     t = dt.date.today()
-    if not (dt.date(2026, 11, 24) <= t <= dt.date(2026, 11, 30) and j.get("status", {}).get("drop_live_verified")): return None
+    if not (dt.date(2026, 11, 22) <= t <= dt.date(2026, 11, 30) and j.get("status", {}).get("drop_live_verified")): return None
     d = next((dt.date.fromisoformat(str(x.get("date"))[:10]) for x in j.get("log", []) if isinstance(x, dict) and x.get("date") and x.get("prices")), None)
-    d = max(d or dt.date(2026, 11, 24), dt.date(2026, 11, 24))
+    d = max(d or dt.date(2026, 11, 22), dt.date(2026, 11, 22))
     return d.strftime("%b %-d, %Y") if os.name != "nt" else d.strftime("%b %#d, %Y")
 SALE_ASOF = _sale()
 BF_SEASON = dt.date.today() <= dt.date(2026, 11, 30)
