@@ -402,7 +402,7 @@ BOOK_FAQ = [
 
 GUIDES = [
  dict(slug="black-friday-gift-ideas-for-tween-girls", kw="Black Friday gifts for tween girls",
-  title="Black Friday Gift Ideas for Tween Girls (2026): Stocking Stuffers & Gifts Ages 7–14",
+  title="Black Friday Gift Ideas for Tween Girls 7–14 (2026)",
   desc="Black Friday gift ideas for tween girls ages 7–14: stocking stuffers, screen-free gifts, and picks for your daughter, niece or granddaughter, starting with a crush journal she'll laugh about when she's grown.",
   intro="Black Friday is when the list gets real: the niece, the granddaughter, your own daughter, the little sister who's suddenly too cool for everything. These ideas work for girls ages 7 to 14, from stocking stuffers to the gift she'll open first.",
   angle="It's the fun-aunt, cool-grandma, mom-who-gets-it gift, and at 6×9 it fits in most stockings.",
@@ -844,7 +844,7 @@ def game_page():
 <h2>Questions</h2>{fh}</div>
 <section style="padding-top:40px"><div class="wrap"><h2 class="center">More sleepover &amp; gift ideas</h2>{guide_cards([g for g in GUIDES if 'sleepover' in g['slug']] + [g for g in GUIDES if 'sleepover' not in g['slug']][:5], short=True)}</div></section>
 {band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
-    return page("sleepover-game/index.html", "Who's My Mystery Crush? Free Printable Sleepover Game for Girls 7–14 | Rate My Crush",
+    return page("sleepover-game/index.html", "Free Printable Sleepover Game for Girls 7–14 | Rate My Crush",
                  "A free printable sleepover game for girls 7–14: everyone picks a secret crush, takes turns asking questions and guessing. Easy rules, a question list and a how-to video. No supplies needed.",
                  body, [vid, fs, crumbs([("Gift guides", "/"), ("Free sleepover game", "/sleepover-game/")])])
 
@@ -891,7 +891,7 @@ def build():
 <section id="faq"><div class="narrow"><h2 class="center">Questions grown-ups ask</h2>{fh}</div></section>
 <section style="padding-top:20px"><div class="wrap"><h2 class="center">Gift guides</h2>{guide_cards(GUIDES, short=True)}</div></section>
 {band("Ready to make someone giggle?", "Pick their cover. Same prompts inside, each styled to match.")}"""
-    urls.append(page("rate-my-crush/index.html", "Rate My Crush: The Crush Journal Gift for Ages 7–14 | Stocking Stuffer & Birthday Gift",
+    urls.append(page("rate-my-crush/index.html", "Rate My Crush: Crush Journal Gift for Girls 7–14",
                      "Rate My Crush is a guided crush journal for ages 7–14 and a fun, screen-free gift: stocking stuffer, birthday, Valentine's or Galentine's. Code names, a 10-category star scorecard and a Crush Level. Playful, Moody and Floral covers on Amazon.", body, [book, fs]))
     # ---------- free sleepover game (Felicia 11/20: simple, no dice; how-to video on YouTube) ----------
     urls.append(game_page())
@@ -906,7 +906,7 @@ def build():
 {social_section()}{band("Three covers. One very funny journal.", "Rate My Crush: the crush journal for ages 7–14.")}"""
     site = {"@context": "https://schema.org", "@type": "WebSite", "name": "Rate My Crush", "url": SITE + "/", "publisher": {"@id": SITE + "/#brand"}}
     il = {"@context": "https://schema.org", "@type": "ItemList", "name": "Gift guides for tweens ages 7–14", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": SITE + "/" + g["slug"] + "/", "name": g["title"]} for i, g in enumerate(GUIDES)]}
-    urls.insert(0, page("index.html", ("Gift Ideas for Tween Girls 7–14: Black Friday, Christmas & Stocking Stuffers | Rate My Crush" if BF_SEASON else "Gift Ideas for Tween Girls 7–14: Christmas, Birthday & Valentine's | Rate My Crush"), ("Black Friday and Cyber Monday gift ideas for tween girls 7–14, plus g" if BF_SEASON else "G") + "ift ideas for tween girls ages 7–14: Christmas gifts, stocking stuffers, birthday gifts, Valentine's and Galentine's ideas, plus gifts for nieces and granddaughters, from the makers of the Rate My Crush crush journal.", body, [site, il]))
+    urls.insert(0, page("index.html", ("Tween Girl Gift Ideas 7–14: Black Friday & Christmas" if BF_SEASON else "Gift Ideas for Tween Girls 7–14 | Rate My Crush"), ("Black Friday and Cyber Monday gift ideas for tween girls 7–14, plus g" if BF_SEASON else "G") + "ift ideas for tween girls ages 7–14: Christmas gifts, stocking stuffers, birthday gifts, Valentine's and Galentine's ideas, plus gifts for nieces and granddaughters, from the makers of the Rate My Crush crush journal.", body, [site, il]))
     # ---------- 404, robots, sitemap, llms.txt, CNAME ----------
     page("404.html", "Page not found | Rate My Crush", "Page not found.",
          '<section class="hero"><div class="narrow center"><h1>Oops, that page ghosted us 👻</h1><p class="lede" style="margin:0 auto 20px">It happens to the best crushes.</p><a class="btn" href="/rate-my-crush/">Meet Rate My Crush</a> <a class="btn ghost" href="/">See gift guides</a></div></section>')
