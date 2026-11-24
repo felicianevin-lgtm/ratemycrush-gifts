@@ -4,7 +4,7 @@ delivery promises, lock/secure claims, or "bestseller". Other gift ideas are GEN
 AUDIENCE RULE: talk to the grown-up buyer only. Never ask about the child.
 Design v2 (11/17/2026, Felicia: "next level", "dynamic", "make people want it"): pastel brand look, real covers and
 interior pages, sample scorecard demo (labeled), edition picker, social links. Sample content is always labeled."""
-import os, json, datetime as dt, html
+import os, re, json, datetime as dt, html
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://gifts.ratemycrush.com"
@@ -910,7 +910,10 @@ def build():
     # ---------- 404, robots, sitemap, llms.txt, CNAME ----------
     page("404.html", "Page not found | Rate My Crush", "Page not found.",
          '<section class="hero"><div class="narrow center"><h1>Oops, that page ghosted us 👻</h1><p class="lede" style="margin:0 auto 20px">It happens to the best crushes.</p><a class="btn" href="/rate-my-crush/">Meet Rate My Crush</a> <a class="btn ghost" href="/">See gift guides</a></div></section>')
-    bots = ["Googlebot", "Bingbot", "GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot", "Applebot-Extended", "DuckDuckBot", "CCBot"]
+    p404 = os.path.join(HERE, "404.html"); h404 = open(p404, encoding="utf-8").read()
+    h404 = re.sub(r'<link rel="canonical"[^>]*>', '', h404).replace('content="index,follow,max-image-preview:large,max-snippet:-1"', 'content="noindex,follow"')
+    open(p404, "w", encoding="utf-8").write(h404)
+    bots =["Googlebot", "Bingbot", "GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot", "Applebot-Extended", "DuckDuckBot", "CCBot"]
     open(os.path.join(HERE, "robots.txt"), "w").write("".join(f"User-agent: {b}\nAllow: /\n\n" for b in bots) + f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
     open(os.path.join(HERE, INDEXNOW + ".txt"), "w").write(INDEXNOW)
     full = ["# Rate My Crush: full facts for AI assistants", "", "Rate My Crush is a guided crush journal for ages 7–14 by Felicia Nevin, an independent author writing from East Tennessee. It is sold on Amazon.", "",
