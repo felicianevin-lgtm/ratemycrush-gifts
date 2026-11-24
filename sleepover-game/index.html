@@ -266,6 +266,11 @@ lb.addEventListener('click',()=>lb.classList.remove('open'));addEventListener('k
 document.addEventListener('click',e=>{const a=e.target.closest('a[href*="amazon.com"]');if(!a||!window.goatcounter||!goatcounter.count)return;
 const ed={'B0FR24YJ8W':'playful','B0FQPPSK1V':'moody','B0FQPK7S8Q':'floral'}[(a.href.match(/dp\/(\w+)/)||[])[1]]||'author';
 goatcounter.count({path:'amazon-'+ed+location.pathname.replace(/\/$/,'').replace(/\//g,'-'),title:'Amazon click: '+ed,event:true})});
+// count printable downloads + video plays
+document.addEventListener('click',e=>{const a=e.target.closest('a[href$=".pdf"]');if(!a||!window.goatcounter||!goatcounter.count)return;
+goatcounter.count({path:'pdf-'+a.pathname.split('/').pop().replace('.pdf','')+location.pathname.replace(/\/$/,'').replace(/\//g,'-'),title:'PDF download',event:true})});
+document.querySelectorAll('video').forEach(v=>v.addEventListener('play',()=>{if(v.dataset.gc||!window.goatcounter||!goatcounter.count)return;v.dataset.gc=1;
+goatcounter.count({path:'video-play'+location.pathname.replace(/\/$/,'').replace(/\//g,'-'),title:'Video play',event:true})}));
 // mobile buy bar
 const bb=document.querySelector('.buybar');if(bb){const f=()=>bb.classList.toggle('show',scrollY>500);addEventListener('scroll',f,{passive:true});f()}
 })();
